@@ -1,0 +1,308 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`to match the test s3 event snapshot 1`] = `
+Object {
+  "Parameters": Object {
+    "AssetParameters35b2a6c27bc961ce02b9240b36245a356b8d8d728d754629d845330ac50c73acArtifactHash77146FC4": Object {
+      "Description": "Artifact hash for asset \\"35b2a6c27bc961ce02b9240b36245a356b8d8d728d754629d845330ac50c73ac\\"",
+      "Type": "String",
+    },
+    "AssetParameters35b2a6c27bc961ce02b9240b36245a356b8d8d728d754629d845330ac50c73acS3BucketB668AB2D": Object {
+      "Description": "S3 bucket for asset \\"35b2a6c27bc961ce02b9240b36245a356b8d8d728d754629d845330ac50c73ac\\"",
+      "Type": "String",
+    },
+    "AssetParameters35b2a6c27bc961ce02b9240b36245a356b8d8d728d754629d845330ac50c73acS3VersionKey77755CAC": Object {
+      "Description": "S3 key for asset version \\"35b2a6c27bc961ce02b9240b36245a356b8d8d728d754629d845330ac50c73ac\\"",
+      "Type": "String",
+    },
+  },
+  "Resources": Object {
+    "BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691": Object {
+      "DependsOn": Array [
+        "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36",
+        "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "ZipFile": "exports.handler = (event, context) => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports, import/no-extraneous-dependencies
+    const s3 = new (require('aws-sdk').S3)();
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const https = require('https');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const url = require('url');
+    log(JSON.stringify(event, undefined, 2));
+    const props = event.ResourceProperties;
+    if (event.RequestType === 'Delete') {
+        props.NotificationConfiguration = {}; // this is how you clean out notifications
+    }
+    const req = {
+        Bucket: props.BucketName,
+        NotificationConfiguration: props.NotificationConfiguration,
+    };
+    return s3.putBucketNotificationConfiguration(req, (err, data) => {
+        log({ err, data });
+        if (err) {
+            return submitResponse('FAILED', err.message + \`\\\\nMore information in CloudWatch Log Stream: \${context.logStreamName}\`);
+        }
+        else {
+            return submitResponse('SUCCESS');
+        }
+    });
+    function log(obj) {
+        console.error(event.RequestId, event.StackId, event.LogicalResourceId, obj);
+    }
+    // eslint-disable-next-line max-len
+    // adapted from https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-lambda-function-code.html#cfn-lambda-function-code-cfnresponsemodule
+    // to allow sending an error messge as a reason.
+    function submitResponse(responseStatus, reason) {
+        const responseBody = JSON.stringify({
+            Status: responseStatus,
+            Reason: reason || 'See the details in CloudWatch Log Stream: ' + context.logStreamName,
+            PhysicalResourceId: event.PhysicalResourceId || event.LogicalResourceId,
+            StackId: event.StackId,
+            RequestId: event.RequestId,
+            LogicalResourceId: event.LogicalResourceId,
+            NoEcho: false,
+        });
+        log({ responseBody });
+        const parsedUrl = url.parse(event.ResponseURL);
+        const options = {
+            hostname: parsedUrl.hostname,
+            port: 443,
+            path: parsedUrl.path,
+            method: 'PUT',
+            headers: {
+                'content-type': '',
+                'content-length': responseBody.length,
+            },
+        };
+        const request = https.request(options, (r) => {
+            log({ statusCode: r.statusCode, statusMessage: r.statusMessage });
+            context.done();
+        });
+        request.on('error', (error) => {
+            log({ sendError: error });
+            context.done();
+        });
+        request.write(responseBody);
+        request.end();
+    }
+};",
+        },
+        "Description": "AWS CloudFormation handler for \\"Custom::S3BucketNotifications\\" resources (@aws-cdk/aws-s3)",
+        "Handler": "index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs10.x",
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "s3:PutBucketNotification",
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleDefaultPolicy2CF63D36",
+        "Roles": Array [
+          Object {
+            "Ref": "BucketNotificationsHandler050a0587b7544547bf325f094a3db834RoleB6FB88EC",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "testS3LambdaEvents3LambdaEventBucketA4FC7BA0": Object {
+      "DeletionPolicy": "Retain",
+      "Properties": Object {
+        "BucketName": "test-bucket",
+      },
+      "Type": "AWS::S3::Bucket",
+      "UpdateReplacePolicy": "Retain",
+    },
+    "testS3LambdaEvents3LambdaEventBucketAllowBucketNotificationsTotestS3LambdaEvents3LambdaEventFunctionDA24263B7CA48894": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "testS3LambdaEvents3LambdaEventFunction959314A5",
+            "Arn",
+          ],
+        },
+        "Principal": "s3.amazonaws.com",
+        "SourceAccount": Object {
+          "Ref": "AWS::AccountId",
+        },
+        "SourceArn": Object {
+          "Fn::GetAtt": Array [
+            "testS3LambdaEvents3LambdaEventBucketA4FC7BA0",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "testS3LambdaEvents3LambdaEventBucketNotifications1CFD6DAF": Object {
+      "DependsOn": Array [
+        "testS3LambdaEvents3LambdaEventBucketAllowBucketNotificationsTotestS3LambdaEvents3LambdaEventFunctionDA24263B7CA48894",
+      ],
+      "Properties": Object {
+        "BucketName": Object {
+          "Ref": "testS3LambdaEvents3LambdaEventBucketA4FC7BA0",
+        },
+        "NotificationConfiguration": Object {
+          "LambdaFunctionConfigurations": Array [
+            Object {
+              "Events": Array [
+                "s3:ObjectCreated:*",
+              ],
+              "LambdaFunctionArn": Object {
+                "Fn::GetAtt": Array [
+                  "testS3LambdaEvents3LambdaEventFunction959314A5",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+        },
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "BucketNotificationsHandler050a0587b7544547bf325f094a3db8347ECC3691",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::S3BucketNotifications",
+    },
+    "testS3LambdaEvents3LambdaEventFunction959314A5": Object {
+      "DependsOn": Array [
+        "testS3LambdaEvents3LambdaEventFunctionServiceRole3289EAA8",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Ref": "AssetParameters35b2a6c27bc961ce02b9240b36245a356b8d8d728d754629d845330ac50c73acS3BucketB668AB2D",
+          },
+          "S3Key": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Fn::Select": Array [
+                    0,
+                    Object {
+                      "Fn::Split": Array [
+                        "||",
+                        Object {
+                          "Ref": "AssetParameters35b2a6c27bc961ce02b9240b36245a356b8d8d728d754629d845330ac50c73acS3VersionKey77755CAC",
+                        },
+                      ],
+                    },
+                  ],
+                },
+                Object {
+                  "Fn::Select": Array [
+                    1,
+                    Object {
+                      "Fn::Split": Array [
+                        "||",
+                        Object {
+                          "Ref": "AssetParameters35b2a6c27bc961ce02b9240b36245a356b8d8d728d754629d845330ac50c73acS3VersionKey77755CAC",
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            ],
+          },
+        },
+        "FunctionName": "s3LambdaEventFunction",
+        "Handler": "index.hander",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "testS3LambdaEvents3LambdaEventFunctionServiceRole3289EAA8",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs10.x",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "testS3LambdaEvents3LambdaEventFunctionServiceRole3289EAA8": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+  },
+}
+`;
