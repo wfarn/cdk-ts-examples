@@ -33,10 +33,12 @@ export class S3LambdaEvent extends cdk.Construct {
         ? s3.EventType.OBJECT_CREATED
         : props.eventType;
 
+    // Create the bucket
     const bucket = new s3.Bucket(this, 's3LambdaEventBucket', {
       bucketName: props.bucketName
     })
 
+    // Create the Lambda function, using code from the local path
     const fn = new lambda.Function(this, 's3LambdaEventFunction', {
       functionName: 's3LambdaEventFunction',
       runtime: lambda.Runtime.NODEJS_10_X,
@@ -46,6 +48,7 @@ export class S3LambdaEvent extends cdk.Construct {
       ),
     });
 
+    // Attach an event to the S3 bucket, which triggers the Lambda Function
     bucket.addEventNotification(eventType, new s3n.LambdaDestination(fn))
   }
 }
